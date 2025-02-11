@@ -11,13 +11,13 @@ import pufferlib
 
 class NMMO3(pufferlib.PufferEnv):
     def __init__(self, width=4*[512], height=4*[512], num_envs=4,
-            num_players=1024, num_enemies=2048, num_resources=2048,
-            num_weapons=1024, num_gems=512, tiers=5, levels=40,
+            num_players=10, num_enemies=10, num_resources=20,
+            num_weapons=0, num_gems=1, tiers=5, levels=4,
             teleportitis_prob=0.001, enemy_respawn_ticks=2,
-            item_respawn_ticks=100, x_window=7, y_window=5,
+            item_respawn_ticks=100, x_window=7, y_window=5, reward_tool=1.0,
             reward_combat_level=1.0, reward_prof_level=1.0,
             reward_item_level=0.5, reward_market=0.01,
-            reward_death=-1.0, buf=None):
+            reward_death=-1.0,  buf=None):
         if not isinstance(width, list):
             width = num_envs * [width]
         if not isinstance(height, list):
@@ -140,6 +140,7 @@ class NMMO3(pufferlib.PufferEnv):
 
         self.single_observation_space = gymnasium.spaces.Box(low=0,
             high=255, shape=(11*15*10+47+10,), dtype=np.uint8)
+            
         self.single_action_space = gymnasium.spaces.Discrete(26)
         self.render_mode = 'human'
 
@@ -149,7 +150,7 @@ class NMMO3(pufferlib.PufferEnv):
             width, height, num_envs, num_players, num_enemies,
             num_resources, num_weapons, num_gems, tiers, levels,
             teleportitis_prob, enemy_respawn_ticks, item_respawn_ticks,
-            reward_combat_level, reward_prof_level, reward_item_level,
+            reward_tool, reward_combat_level, reward_prof_level, reward_item_level,
             reward_market, reward_death, x_window, y_window)
 
     def reset(self, seed=None):

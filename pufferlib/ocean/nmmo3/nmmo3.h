@@ -221,6 +221,7 @@ struct Log {
     float episode_length;
     float return_comb_lvl;
     float return_prof_lvl;
+    float return_tool_pickup;
     float return_item_atk_lvl;
     float return_item_def_lvl;
     float return_market_buy;
@@ -274,6 +275,7 @@ Log aggregate_and_clear(LogBuffer* logs) {
         log.episode_length += logs->logs[i].episode_length / logs->idx;
         log.return_comb_lvl += logs->logs[i].return_comb_lvl / logs->idx;
         log.return_prof_lvl += logs->logs[i].return_prof_lvl / logs->idx;
+        log.return_tool_pickup += logs->logs[i].return_tool_pickup / logs->idx;
         log.return_item_atk_lvl += logs->logs[i].return_item_atk_lvl / logs->idx;
         log.return_item_def_lvl += logs->logs[i].return_item_def_lvl / logs->idx;
         log.return_market_buy += logs->logs[i].return_market_buy / logs->idx;
@@ -674,6 +676,7 @@ struct Reward {
     float item_tool_lvl;
     float market_buy;
     float market_sell;
+    float tool_pickup;
 };
 
 typedef struct Respawnable Respawnable;
@@ -766,6 +769,7 @@ struct MMO {
     RespawnBuffer* drop_respawn_buffer;
     Log* logs;
     LogBuffer* log_buffer;
+    float reward_tool;
     float reward_combat_level;
     float reward_prof_level;
     float reward_item_level;
@@ -785,7 +789,7 @@ void add_player_log(MMO* env, int pid) {
     LogBuffer* logs = env->log_buffer;
     Log* log = &env->logs[pid];
     Entity* player = get_entity(env, pid);
-    log->episode_return = (log->return_comb_lvl + log->return_prof_lvl + log->return_item_atk_lvl
+    log->episode_return = (log->return_comb_lvl + log->return_prof_lvl + log->return_item_atk_lvl + log->return_tool_pickup
         + log->return_item_def_lvl + log->return_market_buy + log->return_market_sell + log->return_death);
     log->episode_length = player->time_alive;
     log->min_comb_prof = (player->prof_lvl > player->comb_lvl) ? player->comb_lvl : player->prof_lvl;
@@ -1181,6 +1185,17 @@ void pickup_item(MMO* env, int pid) {
     if (ground_type == I_TOOL) {
         player->inventory[inventory_idx] = ground_id;
         env->items[adr] = 0;
+
+        // Assign a reward
+        Reward* reward = &env->rewards[pid];
+        Log* log = &env->logs[pid];
+        reward->tool_pickup = env->reward_tool;  // Assign reward instead of +=
+        log->return_tool_pickup += env->reward_tool; // Log reward attribution
+
+        // Print confirmation
+        printf("Player %d picked up a tool (ID: %d) and received a reward of %d points.\n",
+               pid, ground_id, env->reward_tool);
+
         return;
     }
 
@@ -1222,6 +1237,9 @@ void pickup_item(MMO* env, int pid) {
     }
     player->inventory[inventory_idx] = ground_id;
     env->items[adr] = 0;
+
+     // Print confirmation message
+     printf("Player %d picked up item (ID: %d) of type %d.\n", pid, ground_id, ground_type);
 }
 
 bool dest_check(MMO* env, int r, int c);
@@ -1584,7 +1602,8 @@ void use_item(MMO* env, int pid, int inventory_idx) {
     player->equipment_attack += attack;
     player->equipment_defense += defense;
     if (item_type == I_TOOL) {
-        reward->item_tool_lvl = item_reward;
+        reward->tool_pickup = 
+        // reward->item_tool_lvl = item_reward;
     } else {
         if (attack > 0) {
             reward->item_atk_lvl = item_reward;
@@ -2017,6 +2036,7 @@ void c_step(MMO* env) {
         reward->item_atk_lvl = 0;
         reward->item_def_lvl = 0;
         reward->item_tool_lvl = 0;
+        reward->tool_pickup = 0;
         reward->market_buy = 0;
         reward->market_sell = 0;
 

@@ -163,7 +163,7 @@ cdef class Environment:
             list width, list height, int num_envs, list num_players,
             list num_enemies, list num_resources, list num_weapons, list num_gems,
             list tiers, list levels, list teleportitis_prob, list enemy_respawn_ticks,
-            list item_respawn_ticks, float reward_combat_level, float reward_prof_level,
+            list item_respawn_ticks, float reward_tool, float reward_combat_level, float reward_prof_level,
             float reward_item_level, float reward_market, float reward_death,
             int x_window=7, int y_window=5):
 

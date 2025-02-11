@@ -1,0 +1,5 @@
+Installing repo
+pip install -e '.[cleanrl]'
+
+Running demo in training
+python demo.py --env puffer_nmmo3 --mode train --vec multiprocessing
